@@ -56,4 +56,13 @@ private:
     float P[2][2]; // Error covariance matrix - This is a 2x2 matrix
 };
 
+class IMU {
+public:
+    IMU();
+
+    float getAngle();
+    float getRate();
+private:
+};
+
 #endif

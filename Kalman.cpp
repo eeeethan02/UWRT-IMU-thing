@@ -93,6 +93,9 @@ float Kalman::getQangle() { return this->Q_angle; };
 float Kalman::getQbias() { return this->Q_bias; };
 float Kalman::getRmeasure() { return this->R_measure; };
 
+float IMU::getAngle() { return /*Something we read*/ };
+float IMU::getRate() { return /*Something we read*/ };
+
 int main{
     Kalman filter1;
     filter1.setQangle(/* Something */);
@@ -101,11 +104,13 @@ int main{
 
     filter1.setAngle(/* Something we read*/);
 
-    float timeStep = /* How do I get this? Do I time the function? Do I make my own and delay the looping of the function? */
+    float timeStep = /* Something we decide */
+
+    IMU imu1;
     
     while (true) {
-        float angleReading = /* Something we read*/;
-        float rateReading = /* Something we read*/;
+        float angleReading = imu1.getAngle();;
+        float rateReading = imu1.getRate();
         float filteredAngle = getAngle(currentAngle, currentRate, timeStep);
         /* Send the result somewhere */
     }
