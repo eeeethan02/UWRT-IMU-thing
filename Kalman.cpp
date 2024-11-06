@@ -93,8 +93,8 @@ float Kalman::getQangle() { return this->Q_angle; };
 float Kalman::getQbias() { return this->Q_bias; };
 float Kalman::getRmeasure() { return this->R_measure; };
 
-float IMU::getAngle() { return /*Something we read*/ };
-float IMU::getRate() { return /*Something we read*/ };
+float IMU::getAngle(char dir) { return /*Something we read*/ };
+float IMU::getAccel(char dir) { return /*Something we read*/ };
 
 int main{
     Kalman filter1;
@@ -107,11 +107,17 @@ int main{
     float timeStep = /* Something we decide */
 
     IMU imu1;
+
+    float gyroX = gyroY = gyro Z = 0;
+    float accelX = accelY = accelZ = 0;
     
     while (true) {
-        float angleReading = imu1.getAngle();;
-        float rateReading = imu1.getRate();
-        float filteredAngle = getAngle(currentAngle, currentRate, timeStep);
+        accelX = imu1.getAccel(X);
+        accelY = imu1.getAccel(Y);
+        accelZ = imu1.getAccel(Z);
+        float gyroX = getAngle(imu.getGyro(X), atan2(accelY, accelZ), timeStep);
+        float gyroY = getAngle(imu.getGyro(Y), atan2(accelX, accelZ), timeStep);
+        float gyroZ = getAngle(imu.getGyro(Z), atan2(accelX, accelY), timeStep);
         /* Send the result somewhere */
     }
 
