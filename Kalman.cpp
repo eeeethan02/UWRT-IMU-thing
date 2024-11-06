@@ -93,18 +93,18 @@ float Kalman::getQangle() { return this->Q_angle; };
 float Kalman::getQbias() { return this->Q_bias; };
 float Kalman::getRmeasure() { return this->R_measure; };
 
-float IMU::getAngle(char dir) { return /*Something we read*/ };
-float IMU::getAccel(char dir) { return /*Something we read*/ };
+float IMU::getAngle(char dir) { return 0 }; // Change later
+float IMU::getAccel(char dir) { return 0 }; // Change later
 
 int main{
     Kalman filter1;
-    filter1.setQangle(/* Something */);
-    filter1.setQbias(/* Something */);
-    filter1.setRmeasure(/* Something */);
+    filter1.setQangle(0.001); // Change later
+    filter1.setQbias(0.003); // Change later
+    filter1.setRmeasure(0.03); // Change later
 
-    filter1.setAngle(/* Something we read*/);
+    filter1.setAngle(imu.getAngle);
 
-    float timeStep = /* Something we decide */
+    float timeStep = 10; // Change later
 
     IMU imu1;
 
@@ -115,9 +115,10 @@ int main{
         accelX = imu1.getAccel(X);
         accelY = imu1.getAccel(Y);
         accelZ = imu1.getAccel(Z);
-        float gyroX = getAngle(imu.getGyro(X), atan2(accelY, accelZ), timeStep);
-        float gyroY = getAngle(imu.getGyro(Y), atan2(accelX, accelZ), timeStep);
-        float gyroZ = getAngle(imu.getGyro(Z), atan2(accelX, accelY), timeStep);
+        float gyroX = getAngle(imu.getGyro(X)*(M_PI/180), atan2(accelY, accelZ), timeStep);
+        float gyroY = getAngle(imu.getGyro(Y)*(M_PI/180), atan2(accelX, accelZ), timeStep);
+        float gyroZ = getAngle(imu.getGyro(Z)*(M_PI/180), atan2(accelX, accelY), timeStep);
+        wait(10000);
         /* Send the result somewhere */
     }
 
