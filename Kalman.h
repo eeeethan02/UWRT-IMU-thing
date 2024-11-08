@@ -23,9 +23,9 @@ public:
     Kalman();
 
     // The angle should be in degrees and the rate should be in degrees per second and the delta time in seconds
-    float getAngle(float newAngle, float newRate, float dt);
+    float getAngle(int dir, float newAngle, float newRate, float dt);
 
-    void setAngle(float angle); // Used to set angle, this should be set as the starting angle
+    void setAngle(int dir, float angle); // Used to set angle, this should be set as the starting angle
     float getRate(); // Return the unbiased rate
 
     /* These are used to tune the Kalman filter */
@@ -49,7 +49,7 @@ private:
     float Q_bias; // Process noise variance for the gyro bias
     float R_measure; // Measurement noise variance - this is actually the variance of the measurement noise
 
-    float angle; // The angle calculated by the Kalman filter - part of the 2x1 state vector
+    float angle[3];
     float bias; // The gyro bias calculated by the Kalman filter - part of the 2x1 state vector
     float rate; // Unbiased rate calculated from the rate and the calculated bias - you have to call getAngle to update the rate
 
@@ -60,9 +60,9 @@ class IMU {
 public:
     IMU();
 
-    static const char X_AXIS = 'x';
-    static const char Y_AXIS = 'y';
-    static const char Z_AXIS = 'z';
+    static const int X_AXIS = 0;
+    static const int Y_AXIS = 1;
+    static const int Z_AXIS = 2;
 
     float getGyro(char dir);
     float getAccel(char dir);

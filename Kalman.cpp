@@ -17,6 +17,14 @@
 
 #include "Kalman.h"
 #include <cmath>
+#include <map>
+#include <string>
+#include <chrono>
+#include <thread>
+
+using namespace std;
+
+const float M_PI = 3.141592653579;
 
 Kalman::Kalman() {
     /* We will set the variables like so, these can also be tuned by the user */
@@ -24,7 +32,7 @@ Kalman::Kalman() {
     Q_bias = 0.003f;
     R_measure = 0.03f;
 
-    angle = 0.0f; // Reset the angle
+    angle[3] = 0.0f; // Reset the angle
     bias = 0.0f; // Reset bias
 
     P[0][0] = 0.0f; // Since we assume that the bias is 0 and we know the starting angle (use setAngle), the error covariance matrix is set like so - see: http://en.wikipedia.org/wiki/Kalman_filter#Example_application.2C_technical
@@ -34,7 +42,7 @@ Kalman::Kalman() {
 };
 
 // The angle should be in degrees and the rate should be in degrees per second and the delta time in seconds
-float Kalman::getAngle(float newAngle, float newRate, float dt) {
+float Kalman::getAngle(int dir, float newAngle, float newRate, float dt) {
     // KasBot V2  -  Kalman filter module - http://www.x-firm.com/?page_id=145
     // Modified by Kristian Lauszus
     // See my blog post for more information: http://blog.tkjelectronics.dk/2012/09/a-practical-approach-to-kalman-filter-and-how-to-implement-it
@@ -43,7 +51,7 @@ float Kalman::getAngle(float newAngle, float newRate, float dt) {
     // Update xhat - Project the state ahead
     /* Step 1 */
     rate = newRate - bias;
-    angle += dt * rate;
+    angle[dir] += dt * rate;
 
     // Update estimation error covariance - Project the error covariance ahead
     // Using 2d array to represent 2x2 matrix P (P[row][column])
@@ -64,9 +72,9 @@ float Kalman::getAngle(float newAngle, float newRate, float dt) {
 
     // Calculate angle and bias - Update estimate with measurement zk (newAngle)
     /* Step 3 */
-    float y = newAngle - angle; // Angle difference
+    float y = newAngle - angle[dir]; // Angle difference
     /* Step 6 */
-    angle += K[0] * y;
+    angle[dir] += K[0] * y;
     bias += K[1] * y;
 
     // Calculate estimation error covariance - Update the error covariance
@@ -79,10 +87,12 @@ float Kalman::getAngle(float newAngle, float newRate, float dt) {
     P[1][0] -= K[1] * P00_temp;
     P[1][1] -= K[1] * P01_temp;
 
-    return angle;
+    return angle[dir];
 };
 
-void Kalman::setAngle(char dir, float angle) { this->angle = angle; }; // Used to set angle, this should be set as the starting angle
+void Kalman::setAngle(int dir, float angle) { 
+    this->angle[dir] = angle;
+    }; // Used to set angle, this should be set as the starting angle
 float Kalman::getRate() { return this->rate; }; // Return the unbiased rate
 
 /* These are used to tune the Kalman filter */
@@ -116,15 +126,17 @@ int main(){
     float accelX = 0, accelY = 0, accelZ = 0;
     
     while (true) {
+        /*
         accelX = imu1.getAccel(IMU::X_AXIS);
         accelY = imu1.getAccel(IMU::Y_AXIS);
         accelZ = imu1.getAccel(IMU::Z_AXIS);
-        float gyroX = filter1.getAngle(imu1.getGyro(IMU::X_AXIS)*(M_PI/180), atan2(accelY, accelZ), timeStep);
-        float gyroY = filter1.getAngle(imu1.getGyro(IMU::Y_AXIS)*(M_PI/180), atan2(accelX, accelZ), timeStep);
-        float gyroZ = filter1.getAngle(imu1.getGyro(IMU::Z_AXIS)*(M_PI/180), atan2(accelX, accelY), timeStep);
-        // wait
-        /* Send the result somewhere */
-    }
+        float gyroX = filter1.getAngle(IMU::X_AXIS, imu1.getGyro(IMU::X_AXIS)*(M_PI/180), atan2(accelY, accelZ), timeStep);
+        float gyroY = filter1.getAngle(IMU::Y_AXIS, imu1.getGyro(IMU::Y_AXIS)*(M_PI/180), atan2(accelX, accelZ), timeStep);
+        float gyroZ = filter1.getAngle(IMU::Z_AXIS, imu1.getGyro(IMU::Z_AXIS)*(M_PI/180), atan2(accelX, accelY), timeStep);
+        this_thread::sleep_for(chrono::seconds(1));
+        */
+        float gyroX = filter1.getAngle(IMU::X_AXIS, imu1.getGyro(IMU::X_AXIS)*(M_PI/180), atan2(accelY, accelZ), timeStep);
+    };
 
     return 1;
 }
