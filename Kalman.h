@@ -60,8 +60,12 @@ class IMU {
 public:
     IMU();
 
-    float getAngle();
-    float getRate();
+    static const char X_AXIS = 'x';
+    static const char Y_AXIS = 'y';
+    static const char Z_AXIS = 'z';
+
+    float getGyro(char dir);
+    float getAccel(char dir);
 private:
 };
 
