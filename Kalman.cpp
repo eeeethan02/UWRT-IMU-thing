@@ -21,10 +21,13 @@
 #include <string>
 #include <chrono>
 #include <thread>
+#include <fstream>
+#include <istream>
+#include <iostream>
 
 using namespace std;
 
-const float M_PI = 3.141592653579;
+//const float M_PI = 3.1415925;
 
 Kalman::Kalman() {
     /* We will set the variables like so, these can also be tuned by the user */
@@ -34,6 +37,7 @@ Kalman::Kalman() {
 
     angle[3] = 0.0f; // Reset the angle
     bias = 0.0f; // Reset bias
+    rate = 0.0f; 
 
     P[0][0] = 0.0f; // Since we assume that the bias is 0 and we know the starting angle (use setAngle), the error covariance matrix is set like so - see: http://en.wikipedia.org/wiki/Kalman_filter#Example_application.2C_technical
     P[0][1] = 0.0f;
@@ -42,7 +46,7 @@ Kalman::Kalman() {
 };
 
 // The angle should be in degrees and the rate should be in degrees per second and the delta time in seconds
-float Kalman::getAngle(int dir, float newAngle, float newRate, float dt) {
+float Kalman::getAngle(int dir, float newAngle, float newRate, float dt){
     // KasBot V2  -  Kalman filter module - http://www.x-firm.com/?page_id=145
     // Modified by Kristian Lauszus
     // See my blog post for more information: http://blog.tkjelectronics.dk/2012/09/a-practical-approach-to-kalman-filter-and-how-to-implement-it
@@ -105,12 +109,13 @@ float Kalman::getQbias() { return this->Q_bias; };
 float Kalman::getRmeasure() { return this->R_measure; };
 
 // constructor for IMU
+IMU::IMU() {}
 float IMU::getGyro(char dir) { return 0 ;}; // Change later
 float IMU::getAccel(char dir) { return 0 ;}; // Change later
 
 int main(){
     Kalman filter1;
-    IMU imu1;
+    //IMU imu1;
 
     filter1.setQangle(0.001); // Change later
     filter1.setQbias(0.003); // Change later
@@ -120,23 +125,48 @@ int main(){
     filter1.setAngle(IMU::Y_AXIS, 0);
     filter1.setAngle(IMU::Z_AXIS, 0);
 
-    float timeStep = 10; // Change later
+    float timeStep = 1; // Change later
 
     float gyroX = 0, gyroY = 0, gyroZ = 0;
     float accelX = 0, accelY = 0, accelZ = 0;
     
+    // For testing with csv file
+    cout << "Now reading files" << endl;
+    ifstream noiseReader("C:\\Users\\eeeet\\Downloads\\noisy_sine_wave.csv");
+    ifstream cleanReader("C:\\Users\\eeeet\\Downloads\\clean_sine_wave.csv");
+    ofstream writer("C:\\Users\\eeeet\\Downloads\\filtered_sine_wave.csv");
+    float time = 0.0, temp = 0.0, noisyData = 0.0, cleanData = 0.0, filteredData = 0.0;
+    if (!noiseReader.is_open()) {
+        cout << "Noise Read not open" << endl;
+    }
+    string line;
+    getline(noiseReader, line);
+    getline(cleanReader, line);
+    cout << line << endl;
+    cout << "Skipped title" << endl;
+    writer << "time, filtered sine wave" << endl;
+    while (noiseReader >> time && cleanReader >> temp){
+        int comma = ',';
+        noiseReader.ignore(1, comma);
+        cleanReader.ignore(1, comma);
+        noiseReader >> noisyData;
+        cleanReader >> cleanData;
+        filteredData = filter1.getAngle(IMU::X_AXIS, noisyData, cleanData, timeStep);
+        cout << filteredData << endl;
+        writer << time << ", " << filteredData << endl;
+    }
+    cout << "done";
+    writer.close();
+    /*
     while (true) {
-        /*
         accelX = imu1.getAccel(IMU::X_AXIS);
         accelY = imu1.getAccel(IMU::Y_AXIS);
         accelZ = imu1.getAccel(IMU::Z_AXIS);
-        float gyroX = filter1.getAngle(IMU::X_AXIS, imu1.getGyro(IMU::X_AXIS)*(M_PI/180), atan2(accelY, accelZ), timeStep);
-        float gyroY = filter1.getAngle(IMU::Y_AXIS, imu1.getGyro(IMU::Y_AXIS)*(M_PI/180), atan2(accelX, accelZ), timeStep);
-        float gyroZ = filter1.getAngle(IMU::Z_AXIS, imu1.getGyro(IMU::Z_AXIS)*(M_PI/180), atan2(accelX, accelY), timeStep);
+        float gyroX = filter1.getAngle(IMU::X_AXIS, imu1.getGyro((IMU::X_AXIS)*(M_PI/180)), atan2(accelY, accelZ), timeStep);
+        float gyroY = filter1.getAngle(IMU::Y_AXIS, imu1.getGyro((IMU::Y_AXIS)*(M_PI/180)), atan2(accelX, accelZ), timeStep);
+        float gyroZ = filter1.getAngle(IMU::Z_AXIS, imu1.getGyro((IMU::Z_AXIS)*(M_PI/180)), atan2(accelX, accelY), timeStep);
         this_thread::sleep_for(chrono::seconds(1));
-        */
-        float gyroX = filter1.getAngle(IMU::X_AXIS, imu1.getGyro(IMU::X_AXIS)*(M_PI/180), atan2(accelY, accelZ), timeStep);
     };
-
+    */
     return 1;
 }

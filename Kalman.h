@@ -24,7 +24,6 @@ public:
 
     // The angle should be in degrees and the rate should be in degrees per second and the delta time in seconds
     float getAngle(int dir, float newAngle, float newRate, float dt);
-
     void setAngle(int dir, float angle); // Used to set angle, this should be set as the starting angle
     float getRate(); // Return the unbiased rate
 
@@ -60,13 +59,19 @@ class IMU {
 public:
     IMU();
 
-    static const int X_AXIS = 0;
-    static const int Y_AXIS = 1;
-    static const int Z_AXIS = 2;
+    static constexpr float X_AXIS = 0.0f;
+    static constexpr float Y_AXIS = 1.0f;
+    static constexpr float Z_AXIS = 2.0f;
 
     float getGyro(char dir);
     float getAccel(char dir);
 private:
 };
+
+struct Point {
+    float data;
+    Point* next;
+};
+typedef Point *PointPtr;
 
 #endif
