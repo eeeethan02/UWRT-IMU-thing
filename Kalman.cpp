@@ -27,7 +27,7 @@
 
 using namespace std;
 
-//const float M_PI = 3.1415925;
+//constexpr float M_PI = 3.1415925F;
 
 Kalman::Kalman() {
     /* We will set the variables like so, these can also be tuned by the user */
@@ -104,18 +104,31 @@ void Kalman::setQangle(float Q_angle) { this->Q_angle = Q_angle; };
 void Kalman::setQbias(float Q_bias) { this->Q_bias = Q_bias; };
 void Kalman::setRmeasure(float R_measure) { this->R_measure = R_measure; };
 
+void Kalman::settimeStep(float time_step) {this->timeStep = time_step; };
+
 float Kalman::getQangle() { return this->Q_angle; };
 float Kalman::getQbias() { return this->Q_bias; };
 float Kalman::getRmeasure() { return this->R_measure; };
 
-// constructor for IMU
-IMU::IMU() {}
+float Kalman::gettimeStep() { return this->timeStep;};
+
 float IMU::getGyro(char dir) { return 0 ;}; // Change later
 float IMU::getAccel(char dir) { return 0 ;}; // Change later
 
-int main(){
-    Kalman filter1;
-    //IMU imu1;
+void IMU::updateGyro(float &valueX, float &valueY, float &valueZ) {
+    valueX = 0; // Change later
+    valueY = 0; // Change later
+    valueZ = 0; // Change later
+};
+void IMU::updateAccel(float &valueX, float &valueY, float &valueZ) {
+    valueX = 0; // Change later
+    valueY = 0; // Change later
+    valueZ = 0; // Change later
+};
+
+void init(){
+    Kalman& filter1 = Kalman::get_instance();
+    IMU& imu1 = IMU::get_instance();
 
     filter1.setQangle(0.001); // Change later
     filter1.setQbias(0.003); // Change later
@@ -125,16 +138,15 @@ int main(){
     filter1.setAngle(IMU::Y_AXIS, 0);
     filter1.setAngle(IMU::Z_AXIS, 0);
 
-    float timeStep = 1; // Change later
+    filter1.settimeStep(1); // Change later
+}
 
-    float gyroX = 0, gyroY = 0, gyroZ = 0;
-    float accelX = 0, accelY = 0, accelZ = 0;
-    
-    // For testing with csv file
+void filterCSV(){
+    Kalman& filter1 = Kalman::get_instance();
     cout << "Now reading files" << endl;
-    ifstream noiseReader("C:\\Users\\eeeet\\Downloads\\noisy_sine_wave.csv");
-    ifstream cleanReader("C:\\Users\\eeeet\\Downloads\\clean_sine_wave.csv");
-    ofstream writer("C:\\Users\\eeeet\\Downloads\\filtered_sine_wave.csv");
+    ifstream noiseReader("C:\\Users\\eeeet\\OneDrive\\Desktop\\UWRobotics\\Kalman Filter\\noisy_sine_wave.csv");
+    ifstream cleanReader("C:\\Users\\eeeet\\OneDrive\\Desktop\\UWRobotics\\Kalman Filter\\clean_sine_wave.csv");
+    ofstream writer("C:\\Users\\eeeet\\OneDrive\\Desktop\\UWRobotics\\Kalman Filter\\filtered_sine_wave.csv");
     float time = 0.0, temp = 0.0, noisyData = 0.0, cleanData = 0.0, filteredData = 0.0;
     if (!noiseReader.is_open()) {
         cout << "Noise Read not open" << endl;
@@ -143,7 +155,6 @@ int main(){
     getline(noiseReader, line);
     getline(cleanReader, line);
     cout << line << endl;
-    cout << "Skipped title" << endl;
     writer << "time, filtered sine wave" << endl;
     while (noiseReader >> time && cleanReader >> temp){
         int comma = ',';
@@ -151,22 +162,33 @@ int main(){
         cleanReader.ignore(1, comma);
         noiseReader >> noisyData;
         cleanReader >> cleanData;
-        filteredData = filter1.getAngle(IMU::X_AXIS, noisyData, cleanData, timeStep);
+        filteredData = filter1.getAngle(IMU::X_AXIS, noisyData, cleanData, filter1.gettimeStep());
         cout << filteredData << endl;
         writer << time << ", " << filteredData << endl;
     }
     cout << "done";
     writer.close();
-    /*
+}
+
+void action() {
+    float gyroX = 0, gyroY = 0, gyroZ = 0, accelX = 0, accelY = 0, accelZ = 0;
     while (true) {
-        accelX = imu1.getAccel(IMU::X_AXIS);
-        accelY = imu1.getAccel(IMU::Y_AXIS);
-        accelZ = imu1.getAccel(IMU::Z_AXIS);
-        float gyroX = filter1.getAngle(IMU::X_AXIS, imu1.getGyro((IMU::X_AXIS)*(M_PI/180)), atan2(accelY, accelZ), timeStep);
-        float gyroY = filter1.getAngle(IMU::Y_AXIS, imu1.getGyro((IMU::Y_AXIS)*(M_PI/180)), atan2(accelX, accelZ), timeStep);
-        float gyroZ = filter1.getAngle(IMU::Z_AXIS, imu1.getGyro((IMU::Z_AXIS)*(M_PI/180)), atan2(accelX, accelY), timeStep);
+        IMU& imu1 = IMU::get_instance();
+        imu1.updateGyro(gyroX, gyroY, gyroZ);
+        imu1.updateAccel(accelX, accelY, accelZ);
+        Kalman& filter1 = Kalman::get_instance();
+        float gyroX = filter1.getAngle(IMU::X_AXIS, gyroX, atan2(accelY, accelZ), filter1.gettimeStep());
+        float gyroY = filter1.getAngle(IMU::Y_AXIS, gyroX, atan2(accelX, accelZ), filter1.gettimeStep());
+        float gyroZ = filter1.getAngle(IMU::Z_AXIS, gyroX, atan2(accelX, accelY), filter1.gettimeStep());
         this_thread::sleep_for(chrono::seconds(1));
+        // send data somewhere
     };
-    */
+}
+
+int main(){
+    init();
+    filterCSV();
+    action();
+    
     return 1;
 }
